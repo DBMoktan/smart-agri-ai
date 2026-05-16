@@ -15,13 +15,18 @@ st.markdown("""
 <style>
     /* Main Background */
     .stApp {
-        background-color: #f8fbf8;
+        background-color: #ffffff;
     }
     
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
-        background-color: #1e3d2f;
-        color: white;
+        background-color: #f4f7f4;
+        border-right: 1px solid #e0e0e0;
+    }
+    
+    /* Sidebar text color */
+    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h3 {
+        color: #2c3e50 !important;
     }
     
     /* Input Box Styling */
