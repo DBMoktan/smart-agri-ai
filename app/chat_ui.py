@@ -1,143 +1,132 @@
 import streamlit as st
 import requests
-import json
-import os
-from dotenv import load_dotenv
+import time
 
-# Load environment variables
-load_dotenv()
-
-# Page configuration
+# --- Page Configuration ---
 st.set_page_config(
-    page_title="Agri-Smart AI | Nepal",
-    page_icon="🌱",
+    page_title="Agri-Smart AI | Knowledge Assistant",
+    page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a premium look
+# --- Custom Styling ---
 st.markdown("""
-    <style>
-    .main {
-        background-color: #f8f9fa;
-    }
+<style>
+    /* Main Background */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background-color: #f8fbf8;
     }
-    .chat-message {
-        padding: 1.5rem; border-radius: 0.8rem; margin-bottom: 1rem; display: flex;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .chat-message.user {
-        background-color: #ffffff;
-        border-left: 5px solid #2e7d32;
-    }
-    .chat-message.bot {
-        background-color: #e8f5e9;
-        border-left: 5px solid #1b5e20;
-    }
-    .chat-icon {
-        width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 1rem;
-    }
-    .source-box {
-        background-color: #ffffff;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border: 1px solid #e0e0e0;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-    }
-    .stButton>button {
-        background-color: #2e7d32;
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #1e3d2f;
         color: white;
-        border-radius: 20px;
-        padding: 0.5rem 2rem;
     }
-    h1 {
-        color: #1b5e20;
-        font-family: 'Inter', sans-serif;
+    
+    /* Input Box Styling */
+    .stChatInputContainer {
+        padding-bottom: 2rem;
     }
-    </style>
-    """, unsafe_allow_html=True)
 
-# API Configuration
-API_URL = os.getenv("API_URL", "http://localhost:8000/ask")
+    /* Bubble Citations */
+    .source-tag {
+        font-size: 0.8rem;
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-right: 5px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar
+# --- Sidebar Content ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2910/2910791.png", width=100)
+    st.image("https://cdn-icons-png.flaticon.com/512/2329/2329113.png", width=100)
     st.title("Agri-Smart AI")
     st.markdown("---")
-    st.markdown("### About")
-    st.info("""
-    This AI Assistant is powered by RAG (Retrieval-Augmented Generation) 
-    and specialized in Nepalese Agriculture. 
+    st.markdown("### 🌾 About this Assistant")
+    st.write("This AI is trained on specialized agricultural documents from Nepal, including soil management, maize cultivation, and national production statistics.")
     
-    It uses documents from the Ministry of Agriculture and Livestock Development, Nepal.
-    """)
+    st.markdown("### 🛠️ Settings")
+    use_citations = st.checkbox("Show Source Citations", value=True)
+    clear_chat = st.button("Clear Conversation")
+    
     st.markdown("---")
-    if st.button("Clear Chat History"):
-        st.session_state.messages = []
-        st.rerun()
+    st.info("Powered by **Groq LPU** & **LangChain** for ultra-fast agricultural insights.")
 
-# Initialize session state for chat history
-if "messages" not in st.session_state:
+# --- Session State Initialization ---
+if "messages" not in st.session_state or clear_chat:
     st.session_state.messages = []
 
-# Main UI
-st.title("🌱 Agri-Smart AI: Nepal's Knowledge Hub")
-st.caption("Ask me anything about maize production, soil fertility, or agricultural statistics in Nepal.")
+# --- Main UI Header ---
+st.title("🌾 Agri-Smart Knowledge Assistant")
+st.caption("Expert agricultural advice based on Nepalese research and statistics.")
 
-# Display chat history
+# --- Display Chat History ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        if "sources" in message and message["sources"]:
-            with st.expander("View Sources"):
+        if "sources" in message and use_citations:
+            with st.expander("🔍 View Verified Sources"):
                 for idx, source in enumerate(message["sources"]):
-                    st.markdown(f"**Source {idx+1}:** {source['metadata'].get('source', 'Unknown')}")
-                    st.markdown(f"*{source['content'][:200]}...*")
+                    st.markdown(f"**[{idx+1}] {source['metadata'].get('source', 'Document')}**")
+                    st.markdown(f"*{source['content'][:300]}...*")
 
-# Chat input
-if prompt := st.chat_input("How can I improve maize yield in hilly regions?"):
-    # Add user message to history
+# --- Chat Input & Logic ---
+if prompt := st.chat_input("Ask me about farming, crops, or statistics in Nepal..."):
+    # Add user message to state
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Call Backend API
+    # Generate assistant response
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        message_placeholder.markdown("🚜 *Consulting the knowledge base...*")
+        full_response = ""
         
         try:
-            response = requests.post(API_URL, json={"query": prompt})
+            # Call FastAPI Backend
+            response = requests.post(
+                "http://localhost:8000/ask",
+                json={"query": prompt},
+                timeout=30
+            )
+            
             if response.status_code == 200:
-                data = response.json()
-                answer = data["answer"]
-                sources = data["sources"]
+                result = response.json()
+                answer = result["answer"]
+                sources = result.get("sources", [])
                 
-                message_placeholder.markdown(answer)
+                # Typing effect simulation
+                for chunk in answer.split():
+                    full_response += chunk + " "
+                    time.sleep(0.05)
+                    message_placeholder.markdown(full_response + "▌")
                 
-                # Add assistant response to history
+                message_placeholder.markdown(full_response)
+                
+                # Handle Sources
+                if sources and use_citations:
+                    with st.expander("🔍 View Verified Sources"):
+                        for idx, source in enumerate(sources):
+                            st.markdown(f"**[{idx+1}] {source['metadata'].get('source', 'Document')}**")
+                            st.markdown(f"*{source['content'][:300]}...*")
+                
+                # Add to history
                 st.session_state.messages.append({
                     "role": "assistant", 
-                    "content": answer,
+                    "content": full_response,
                     "sources": sources
                 })
-                
-                if sources:
-                    with st.expander("View Sources"):
-                        for idx, source in enumerate(sources):
-                            st.markdown(f"**Source {idx+1}:** {source['metadata'].get('source', 'Unknown')}")
-                            st.markdown(f"*{source['content'][:200]}...*")
             else:
-                st.error(f"API Error: {response.status_code}")
-                message_placeholder.markdown("Sorry, I encountered an error while processing your request.")
+                st.error("The backend returned an error. Please check if the API is working correctly.")
+                
         except Exception as e:
-            st.error(f"Connection Error: {e}")
-            message_placeholder.markdown("Failed to connect to the backend server. Is it running?")
+            st.error(f"Failed to connect to backend: {e}")
+            st.info("💡 Make sure your FastAPI server is running with: `uvicorn app.main:app --reload`")
 
-# Footer
+# --- Footer ---
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: grey;'>Built with ❤️ for Nepalese Farmers | Powered by Groq & LangChain</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: grey;'>Expert Agricultural Intelligence for Nepal</p>", unsafe_allow_html=True)
