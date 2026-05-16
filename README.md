@@ -86,10 +86,4 @@ python evaluate.py
 
 ---
 
-## 👨‍💻 Author
-**DB Moktan**
-*   Data Science & AI Engineering Student
-*   [GitHub](https://github.com/DBMoktan)
-
----
 *Built with ❤️ for the Nepalese Agricultural Community.*
