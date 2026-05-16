@@ -6,59 +6,51 @@ from langchain_groq import ChatGroq
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-# Load environment variables (API Key)
+# Load environment variables
 load_dotenv()
 
-# Configuration
-DB_PATH = "data/vector_db/"
-
 def get_rag_chain():
-    """
-    Initializes and returns a RetrievalQA chain.
-    """
-    # 1. Load Embeddings
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={'device': 'cpu'}
-    )
-
-    # 2. Connect to the existing Vector Database
-    if not os.path.exists(DB_PATH):
-        raise FileNotFoundError(f"Vector DB not found at {DB_PATH}. Run ingest.py first.")
-        
+    # 1. Initialize Embeddings
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    
+    # 2. Load Vector Store
     vector_db = Chroma(
-        persist_directory=DB_PATH,
+        persist_directory="data/vector_db",
         embedding_function=embeddings
     )
-
-    # 3. Initialize Groq LLM (Llama 3.3)
-    llm = ChatGroq(
-        model_name="llama-3.3-70b-versatile",
-        temperature=0.2, # Low temperature for factual agricultural advice
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
-
-    # 4. Create a Custom Prompt (The "Instructions")
-    prompt_template = """You are an expert Agricultural Assistant for Nepal. 
-    Use the following pieces of retrieved context to answer the user's question. 
-    If the context doesn't contain the answer, say you don't know, don't try to make up an answer.
-    Answer in a professional and helpful tone.
-
-    Context: {context}
-    Question: {question}
-
-    Expert Answer:"""
     
+    # 3. Initialize LLM (Groq) - Using 8B model for higher rate limits
+    llm = ChatGroq(
+        temperature=0.1,
+        model_name="llama-3.1-8b-instant"
+    )
+    
+    # 4. Define Sharp Professional Prompt
+    prompt_template = """
+    You are an expert Agricultural Assistant for Nepal. Use the following context to answer the user's question precisely.
+    
+    RULES:
+    1. Be concise and direct. Answer the question in the first sentence if possible.
+    2. Use bullet points for statistics or lists.
+    3. If the answer is not in the context, say: "I'm sorry, but my current records do not contain specific information on this. Please consult a local agricultural expert."
+    4. Do not mention "based on the provided context" - just give the answer.
+    
+    CONTEXT: {context}
+    
+    QUESTION: {question}
+    
+    ANSWER:
+    """
     PROMPT = PromptTemplate(
-        template=prompt_template, 
+        template=prompt_template,
         input_variables=["context", "question"]
     )
-
-    # 5. Build the Chain
+    
+    # 5. Create Chain with k=5 for better context coverage
     chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=vector_db.as_retriever(search_kwargs={"k": 3}), # Pull top 3 relevant chunks
+        retriever=vector_db.as_retriever(search_kwargs={"k": 5}),
         return_source_documents=True,
         chain_type_kwargs={"prompt": PROMPT}
     )
@@ -66,20 +58,9 @@ def get_rag_chain():
     return chain
 
 if __name__ == "__main__":
-    # Quick test
-    try:
-        chain = get_rag_chain()
-        query = "What are the main constraints for maize production in Nepal?"
-        print(f"\nUser Query: {query}")
-        
-        response = chain.invoke({"query": query})
-        
-        print("\n--- AI Response ---")
-        print(response["result"])
-        
-        print("\n--- Sources Used ---")
-        for doc in response["source_documents"]:
-            print(f"Source: {doc.metadata['source']} (Page {doc.metadata.get('page', 'N/A')})")
-            
-    except Exception as e:
-        print(f"Error: {e}")
+    # Test the chain
+    chain = get_rag_chain()
+    query = "What is the average yield of maize in Nepal?"
+    response = chain.invoke(query)
+    print(f"Query: {query}")
+    print(f"Answer: {response['result']}")

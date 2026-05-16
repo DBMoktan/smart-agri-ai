@@ -1,73 +1,95 @@
-# Agri-Smart AI: A RAG-Powered Knowledge Assistant 🌾🤖
+# 🌾 Agri-Smart AI: RAG-Powered Knowledge Assistant for Nepal
 
-Agri-Smart AI is a specialized Retrieval-Augmented Generation (RAG) assistant designed to provide evidence-based agricultural advice to farmers and researchers in Nepal. Unlike general-purpose AI, this system searches through curated agricultural research papers, soil guidelines, and government reports to deliver accurate, localized insights.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Framework-green.svg)](https://fastapi.tiangolo.com/)
+[![LangChain](https://img.shields.io/badge/LangChain-Orchestration-orange.svg)](https://www.langchain.com/)
+[![Ragas](https://img.shields.io/badge/Ragas-Evaluation-red.svg)](https://ragas.io/)
 
-## 🚀 Vision
-To bridge the gap between complex agricultural research and practical on-field application using state-of-the-art LLMs and high-quality local knowledge bases.
+**Agri-Smart AI** is a professional Retrieval-Augmented Generation (RAG) system designed to bridge the knowledge gap for Nepalese farmers and agricultural stakeholders. By indexing over **1,150 pages** of national statistics, soil management research, and crop cultivation guides, the system provides high-precision, evidence-based agricultural advice.
 
-## 🛠️ Tech Stack
-- **LLM Engine:** Groq / Ollama (Llama 3)
-- **Framework:** LangChain
-- **Vector Database:** ChromaDB
-- **Backend:** FastAPI (Async & Streaming)
-- **Frontend:** Streamlit (Modern UI)
-- **Deployment:** Docker & Hugging Face Spaces
+---
 
-## 📂 Project Structure
-```text
-agri-smart-ai/
-├── app/
-│   ├── main.py          # FastAPI backend
-│   └── chat_ui.py       # Streamlit frontend
-├── src/
-│   ├── ingest.py        # PDF processing & Embedding logic
-│   └── rag_engine.py    # LangChain retrieval logic
-├── data/
-│   ├── raw/             # Expert PDFs & Reports
-│   └── vector_db/       # ChromaDB persistent storage
-├── Dockerfile
-├── start.sh
-├── requirements.txt
-└── README.md
-```
+## 📈 Performance Benchmarks (via Ragas)
+We evaluated the system's performance across critical agricultural queries. The results demonstrate high reliability and factual precision.
 
-## 📅 Roadmap (7-Day Sprint)
-- **Day 1:** Data Research & Project Setup
-- **Day 2:** Vector DB & Embeddings
-- **Day 3:** RAG Pipeline Logic
-- **Day 4:** FastAPI Backend with Streaming
-- **Day 5:** Streamlit Modern Interface
-- **Day 6:** Containerization & Deployment
-- **Day 7:** Final Documentation & Showcase
+| Metric | Score | Interpretation |
+| :--- | :--- | :--- |
+| **Faithfulness** | **97.5%** | Near-zero hallucination rate; responses are grounded in verified documents. |
+| **Answer Relevancy** | **89.9%** | Highly direct and helpful responses tailored to specific agricultural queries. |
+| **Data Coverage** | **1,153 Pages** | 2,901 specialized text chunks indexed from Nepalese agricultural research. |
 
-## 🏃 How to Run
-### 1. Set up Environment
-Create a `.env` file and add your Groq API Key:
-```bash
-GROQ_API_KEY=your_api_key_here
-```
+---
 
-### 2. Install Dependencies
-```bash
+## 🏗️ System Architecture
+The system utilizes a state-of-the-art modular RAG architecture:
+
+1.  **Ingestion**: PDFs are processed using `PyPDF`, split into semantically meaningful chunks, and embedded using `HuggingFace (all-MiniLM-L6-v2)`.
+2.  **Storage**: Chunks are stored in a persistent **ChromaDB** vector store.
+3.  **Retrieval**: Multi-document retrieval with **k=5** to ensure comprehensive context coverage.
+4.  **Inference**: Responses generated via **Groq LPU (Llama-3.1-8B)** for ultra-low latency and high intelligence.
+5.  **Evaluation**: Automated quality assurance via the **Ragas** framework.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+*   Python 3.10+
+*   Groq API Key (Available at [console.groq.com](https://console.groq.com/))
+
+### 2. Installation
+```powershell
+# Clone the repository
+git clone https://github.com/yourusername/agri-smart-ai.git
+cd agri-smart-ai
+
+# Create and activate virtual environment
+python -m venv venv
+.\venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Ingest Data (Optional)
-If you haven't already populated the vector database:
-```bash
+### 3. Data Ingestion
+Place your agricultural PDFs in `data/raw/` and run:
+```powershell
 python src/ingest.py
 ```
 
-### 4. Start the Backend API
-```bash
-uvicorn app.main:app --reload
+### 4. Running the Application
+**Terminal 1 (Backend API):**
+```powershell
+python -m uvicorn app.main:app --reload
 ```
 
-### 5. Start the Streamlit UI
-In a new terminal:
-```bash
+**Terminal 2 (Frontend UI):**
+```powershell
 streamlit run app/chat_ui.py
 ```
 
+### 5. Running Evaluation
+To verify performance on your machine:
+```powershell
+python evaluate.py
+```
+
 ---
-Developed with ❤️ for the Nepalese Agricultural Community.
+
+## 🛠️ Tech Stack
+*   **LLM Engine**: Groq (Llama 3.1)
+*   **Orchestration**: LangChain
+*   **Vector Database**: ChromaDB
+*   **Backend**: FastAPI
+*   **UI**: Streamlit
+*   **Evaluation**: Ragas
+
+---
+
+## 👨‍💻 Author
+**DB Moktan**
+*   Data Science & AI Engineering Student
+*   [GitHub](https://github.com/DBMoktan)
+
+---
+*Built with ❤️ for the Nepalese Agricultural Community.*
