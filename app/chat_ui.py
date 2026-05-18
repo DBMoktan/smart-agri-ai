@@ -104,10 +104,11 @@ if prompt := st.chat_input("Ask me about farming, crops, or statistics in Nepal.
                 answer = result["answer"]
                 sources = result.get("sources", [])
                 
-                # Typing effect simulation
-                for chunk in answer.split():
-                    full_response += chunk + " "
-                    time.sleep(0.05)
+                # Typing effect simulation (preserves markdown/newlines)
+                chunk_size = 4
+                for i in range(0, len(answer), chunk_size):
+                    full_response += answer[i:i+chunk_size]
+                    time.sleep(0.02)
                     message_placeholder.markdown(full_response + "▌")
                 
                 message_placeholder.markdown(full_response)
