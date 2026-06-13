@@ -40,7 +40,7 @@ The system utilizes a state-of-the-art modular RAG architecture:
 ### 2. Installation
 ```powershell
 # Clone the repository
-git clone https://github.com/yourusername/agri-smart-ai.git
+git clone https://github.com/DBMoktan/agri-smart-ai.git
 cd agri-smart-ai
 
 # Create and activate virtual environment
